@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>20/10</title>
+    <style>
+        :root {
+            --pink: #ff4d6d;
+            --dark: #000;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            height: 100vh;
+            background: linear-gradient(to bottom, #1a1a2e, #16213e, #4a2b4d);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            font-family: 'Times New Roman', serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            height: 100%;
+        }
+
+        .section {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            opacity: 0;
+            transform: translateY(12px) scale(.98);
+            -webkit-transform: translateY(12px) scale(.98);
+        }
+
+        .section.active {
+            display: flex;
+            opacity: 1;
+            transform: translateY(0) scale(1);
+            -webkit-transform: translateY(0) scale(1);
+            transition: opacity 1s ease, transform 1s ease;
+            -webkit-transition: opacity 1s ease, -webkit-transform 1s ease;
+        }
+
+        .section.fade-out {
+            opacity: 0;
+            transform: scale(0.9);
+            -webkit-transform: scale(0.9);
+        }
+
+        /* Thư - Khắc phục hoàn toàn lệch nắp trên Messenger / Safari */
+        .envelope {
+            position: relative;
+            width: min(350px, 88vw);
+            height: 230px;
+            cursor: pointer;
+            perspective: 1000px;
+            -webkit-perspective: 1000px;
+            isolation: isolate;
+        }
+
+        .lid {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 54%;
+            background: #e58b9c;
+            clip-path: polygon(0 0, 100% 0, 50% 100%);
+            -webkit-clip-path: polygon(0 0, 100% 0, 50% 100%);
+            transform-origin: top center;
+            -webkit-transform-origin: top center;
+            transition: transform .85s cubic-bezier(.2,.75,.25,1), z-index .1s .35s;
+            -webkit-transition: -webkit-transform .85s cubic-bezier(.2,.75,.25,1), z-index .1s .35s;
+            z-index: 4;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+        }
+
+        .box {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(145deg, #e58b9c, #c85d76);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 48px;
+            z-index: 3;
+            border-radius: 0 0 12px 12px;
+            clip-path: polygon(0 0, 50% 53%, 100% 0, 100% 100%, 0 100%);
+            -webkit-clip-path: polygon(0 0, 50% 53%, 100% 0, 100% 100%, 0 100%);
+            pointer-events: none;
+        }
+
+        .card {
+            position: absolute;
+            background: linear-gradient(145deg, #fffefa, #fff0f3);
+            width: 90%;
+            height: 88%;
+            top: 6%;
+            left: 5%;
+            padding: 15px 20px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            text-align: center;
+            transition: transform 1s cubic-bezier(.2,.75,.25,1), box-shadow .8s ease;
+            -webkit-transition: -webkit-transform 1s cubic-bezier(.2,.75,.25,1), box-shadow .8s ease;
+            z-index: 2;
+            border: 1px solid rgba(216,27,67,.16);
+            border-radius: 10px;
+            box-shadow: 0 5px 18px rgba(0,0,0,.18);
+            transform: translateY(0);
+            -webkit-transform: translateY(0);
+        }
+
+        .card h2 {
+            width: 100%;
+            color: #d81b43;
+            margin: 0 0 10px;
+            font-size: clamp(17px, 4.5vw, 22px);
+            line-height: 1.2;
+        }
+        .card p {
+            width: 100%;
+            font-size: clamp(12.5px, 3.4vw, 14.5px);
+            line-height: 1.6;
+            color: #444;
+            margin: 4px 0;
+            overflow-wrap: break-word;
+            word-break: normal;
+        }
+        .card .sign { font-weight: bold; margin-top: 10px; color: #d81b43; }
+
+        .envelope.open .lid {
+            transform: rotateX(180deg);
+            -webkit-transform: rotateX(180deg);
+            z-index: 1; 
+        }
+
+        .envelope.open .card {
+            transform: translateY(-160px);
+            -webkit-transform: translateY(-160px);
+            z-index: 5;
+            box-shadow: 0 12px 28px rgba(0,0,0,.28);
+        }
+
+        .hint {
+            color: #fca3b7;
+            margin-top: 25px;
+            font-size: 15px;
+            text-align: center;
+            animation: bounce 1s infinite alternate;
+            -webkit-animation: bounce 1s infinite alternate;
+        }
+   
+        /* Bó hoa */
+        .bouquet-container {
+            transform: scale(.95) translateY(10px);
+            -webkit-transform: scale(.95) translateY(10px);
+            transition: opacity 1.2s ease, transform 1.3s cubic-bezier(.2,.8,.2,1);
+            -webkit-transition: opacity 1.2s ease, -webkit-transform 1.3s cubic-bezier(.2,.8,.2,1);
+            width: 100%;
+            max-width: 580px;
+        }
+
+        .bouquet-container.show {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+            -webkit-transform: scale(1) translateY(0);
+        }
+
+        .flower-system { 
+            animation: bouquetFloat 5s ease-in-out 1.3s infinite; 
+            -webkit-animation: bouquetFloat 5s ease-in-out 1.3s infinite;
+        }
+        .stems .stem {
+            stroke-dasharray: 500;
+            stroke-dashoffset: 500;
+            animation: drawStem 1.4s ease-out forwards;
+            -webkit-animation: drawStem 1.4s ease-out forwards;
+        }
+        .stems .stem:nth-child(2n) { animation-delay: .1s; }
+        .stems .stem:nth-child(3n) { animation-delay: .2s; }
+        
+        .leaves { 
+            opacity: 0; 
+            transform-origin: 150px 400px; 
+            -webkit-transform-origin: 150px 400px;
+            animation: leafBloom .8s ease-out 1s forwards; 
+            -webkit-animation: leafBloom .8s ease-out 1s forwards;
+        }
+        
+        .flowers-layer-1, .flowers-layer-2, .flowers-layer-3,
+        .flowers-layer-4, .flowers-layer-5, .flowers-layer-6 {
+            opacity: 0;
+            transform-box: fill-box;
+            transform-origin: center bottom;
+            -webkit-transform-origin: center bottom;
+            animation: flowerBloom .8s cubic-bezier(.16,1,.3,1) forwards;
+            -webkit-animation: flowerBloom .8s cubic-bezier(.16,1,.3,1) forwards;
+        }
+        .flowers-layer-1 { animation-delay: .6s; }
+        .flowers-layer-2 { animation-delay: .75s; }
+        .flowers-layer-3 { animation-delay: .9s; }
+        .flowers-layer-4 { animation-delay: 1.05s; }
+        .flowers-layer-5 { animation-delay: 1.2s; }
+        .flowers-layer-6 { animation-delay: 1.35s; }
+
+        .wrapper-back, .wrapper-front, .ribbon {
+            opacity: 0;
+            animation: wrapperAppear .8s ease-out 1.45s forwards;
+            -webkit-animation: wrapperAppear .8s ease-out 1.45s forwards;
+        }
+        .message { 
+            opacity: 0; 
+            animation: messageAppear 1s ease 1.7s forwards; 
+            -webkit-animation: messageAppear 1s ease 1.7s forwards;
+        }
+
+        @keyframes drawStem { to { stroke-dashoffset: 0; } }
+        @-webkit-keyframes drawStem { to { stroke-dashoffset: 0; } }
+
+        @keyframes flowerBloom {
+            from { opacity: 0; transform: translateY(15px) scale(.3) rotate(-10deg); }
+            to { opacity: 1; transform: translateY(0) scale(1) rotate(0); }
+        }
+        @-webkit-keyframes flowerBloom {
+            from { opacity: 0; -webkit-transform: translateY(15px) scale(.3) rotate(-10deg); }
+            to { opacity: 1; -webkit-transform: translateY(0) scale(1) rotate(0); }
+        }
+
+        @keyframes leafBloom { to { opacity: 1; } }
+        @-webkit-keyframes leafBloom { to { opacity: 1; } }
+
+        @keyframes wrapperAppear { to { opacity: 1; } }
+        @-webkit-keyframes wrapperAppear { to { opacity: 1; } }
+
+        @keyframes messageAppear { to { opacity: 1; } }
+        @-webkit-keyframes messageAppear { to { opacity: 1; } }
+
+        @keyframes bouquetFloat { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+        @-webkit-keyframes bouquetFloat { 0%,100% { -webkit-transform: translateY(0); } 50% { -webkit-transform: translateY(-8px); } }
+
+        .svg-flower {
+            width: 100%;
+            max-width: 560px;
+            height: 580px;
+        }
+
+        .stem { 
+            fill: none; 
+            stroke: #2d8a4e; 
+            stroke-width: 3.8;
+            stroke-linecap: round;
+        }
+
+        .message {
+            color: white;
+            text-align: center;
+            margin-top: -15px;
+            z-index: 10;
+        }
+
+        .message h1 {
+            color: #ff7a94;
+            font-size: 26px;
+            margin-bottom: 5px;
+            text-shadow: 0 0 10px rgba(255, 122, 148, 0.5);
+        }
+
+        .message p {
+            color: #f1cbd2;
+            font-size: 15.5px;
+        }
+
+        @keyframes bounce {
+            to { transform: translateY(-10px); }
+        }
+        @-webkit-keyframes bounce {
+            to { -webkit-transform: translateY(-10px); }
+        }
+
+        @keyframes fall {
+            0% { opacity: 1; transform: translateY(0) rotate(0deg); }
+            100% {
+                transform: translateY(105vh) rotate(25deg);
+                opacity: 0;
+            }
+        }
+        @-webkit-keyframes fall {
+            0% { opacity: 1; -webkit-transform: translateY(0) rotate(0deg); }
+            100% {
+                -webkit-transform: translateY(105vh) rotate(25deg);
+                opacity: 0;
+            }
+        }
+
+        .heart-fall {
+            position: fixed;
+            animation: fall 4.5s linear forwards;
+            -webkit-animation: fall 4.5s linear forwards;
+            pointer-events: none;
+            z-index: 9999; 
+            color: #ffb3c6;
+            font-weight: bold;
+            font-family: 'Arial', sans-serif;
+            text-shadow: 0 0 8px rgba(255, 77, 109, 0.8);
+            white-space: nowrap; 
+        }
+
+        /* Ảnh rơi */
+        .falling-photo {
+            position: fixed;
+            width: clamp(75px, 12vw, 125px);
+            height: clamp(95px, 15vw, 155px);
+            object-fit: cover;
+            border: 4px solid rgba(255,255,255,.95);
+            border-bottom-width: 16px;
+            border-radius: 6px;
+            box-shadow: 0 10px 24px rgba(0,0,0,.3);
+            pointer-events: none;
+            z-index: 9998;
+            animation: photoDrift var(--duration, 7s) linear forwards;
+            -webkit-animation: photoDrift var(--duration, 7s) linear forwards;
+            will-change: transform, opacity;
+        }
+
+        @keyframes photoDrift {
+            0% { transform: translate3d(0, 0, 0) rotate(var(--rotate-start, -12deg)); opacity: 0; }
+            8% { opacity: 1; }
+            50% { transform: translate3d(var(--drift, 60px), 50vh, 0) rotate(var(--rotate-mid, 8deg)); opacity: 1; }
+            100% { transform: translate3d(var(--drift-end, -30px), 105vh, 0) rotate(var(--rotate-end, 18deg)); opacity: 0; }
+        }
+        @-webkit-keyframes photoDrift {
+            0% { -webkit-transform: translate3d(0, 0, 0) rotate(var(--rotate-start, -12deg)); opacity: 0; }
+            8% { opacity: 1; }
+            50% { -webkit-transform: translate3d(var(--drift, 60px), 50vh, 0) rotate(var(--rotate-mid, 8deg)); opacity: 1; }
+            100% { -webkit-transform: translate3d(var(--drift-end, -30px), 105vh, 0) rotate(var(--rotate-end, 18deg)); opacity: 0; }
+        }
+
+        @media (max-width: 480px) {
+            .envelope { width: 88vw; height: 220px; }
+            .svg-flower { height: min(62vh, 450px); }
+            .message h1 { font-size: 22px; }
+            .message p { font-size: 14px; padding: 0 12px; }
+        }
+    </style>
+</head>
+<body onclick="handleClick(event)">
+
+<div class="container">
+
+    <div id="envelopeSection" class="section active">
+        <div class="envelope" onclick="openLetter(this)">
+            <div class="card">
+                <h2>Chúc mừng 20/10 💐</h2>
+                <p>
+                    Hôm nay Anh có một bất ngờ nhỏ cho em nè!<br>
+                    Chúc em có một ngày 20/10 thật vui vẻ nhaaaa ❤️<br>
+                    Luôn có thật nhiều niềm vui và những điều dễ thương nhé.
+                </p>
+                <p class="sign">❤️ From Beecaso</p>
+            </div>
+            <div class="box">🌸</div>
+            <div class="lid"></div>
+        </div>
+        <p class="hint">Bấm vào lá thư để mở...</p>
+    </div>
+
+    <div id="bouquetSection" class="section bouquet-container">
+        <div class="flower-system">
+            <svg viewBox="-80 -40 460 500" class="svg-flower">
+                
+                <!-- Mặt sau giấy gói -->
+                <g class="wrapper-back">
+                    <path d="M150 400 L-60 80 Q150 10 360 80 Z" fill="#f7ede2"/>
+                    <path d="M150 400 L-30 50 Q150 -10 330 50 Z" fill="#faedcd" opacity="0.6"/>
+                </g>
+
+                <!-- Cành hoa -->
+                <g class="stems">
+                    <path d="M150 400 Q130 220 110 40" class="stem"/>
+                    <path d="M150 400 Q170 220 190 40" class="stem"/>
+                    <path d="M150 400 Q110 230 70 70" class="stem"/>
+                    <path d="M150 400 Q190 230 230 70" class="stem"/>
+                    <path d="M150 400 Q90 260 40 120" class="stem"/>
+                    <path d="M150 400 Q210 260 260 120" class="stem"/>
+                    <path d="M150 400 Q90 300 30 210" class="stem"/>
+                    <path d="M150 400 Q210 300 270 210" class="stem"/>
+                    <path d="M150 400 Q150 240 150 80" class="stem"/>
+                    <path d="M150 400 Q120 250 90 110" class="stem"/>
+                    <path d="M150 400 Q180 250 210 110" class="stem"/>
+                    <path d="M150 400 Q130 270 110 150" class="stem"/>
+                    <path d="M150 400 Q170 270 190 150" class="stem"/>
+                    <path d="M150 400 Q90 280 50 170" class="stem"/>
+                    <path d="M150 400 Q210 280 250 170" class="stem"/>
+                    <path d="M150 400 Q150 290 150 190" class="stem"/>
+                    <path d="M150 400 Q110 320 80 240" class="stem"/>
+                    <path d="M150 400 Q190 320 220 240" class="stem"/>
+                    <path d="M150 400 Q150 200 150 20" class="stem"/>
+                    <path d="M150 400 Q110 200 80 30" class="stem"/>
+                    <path d="M150 400 Q190 200 220 30" class="stem"/>
+                    <path d="M150 400 Q70 280 -10 140" class="stem"/>
+                    <path d="M150 400 Q230 280 310 140" class="stem"/>
+                    <path d="M150 400 Q50 220 -20 80" class="stem"/>
+                    <path d="M150 400 Q250 220 320 80" class="stem"/>
+                </g>
+
+                <!-- Lá xanh -->
+                <g class="leaves">
+                    <g transform="translate(145,280) rotate(-40)"><use href="#leaf"/></g>
+                    <g transform="translate(152,310) rotate(160)"><use href="#leaf"/></g>
+                    <g transform="translate(130,220) rotate(-60) scale(0.8)"><use href="#leaf"/></g>
+                    <g transform="translate(170,230) rotate(140) scale(0.8)"><use href="#leaf"/></g>
+                    <g transform="translate(100,270) rotate(-30) scale(0.9)"><use href="#leaf"/></g>
+                    <g transform="translate(200,280) rotate(150) scale(0.9)"><use href="#leaf"/></g>
+                    <g transform="translate(60,220) rotate(-50) scale(0.9)"><use href="#leaf"/></g>
+                    <g transform="translate(240,220) rotate(130) scale(0.9)"><use href="#leaf"/></g>
+                </g>
+
+                <!-- Lớp hoa 1 -->
+                <g class="flowers-layer-1">
+                    <g transform="translate(150,15) scale(1.6) rotate(5)"><use href="#bluestar"/></g>
+                    <g transform="translate(80,30) scale(1.6) rotate(-15)"><use href="#bluestar"/></g>
+                    <g transform="translate(220,30) scale(1.6) rotate(20)"><use href="#bluestar"/></g>
+                    <g transform="translate(110,20) scale(1.1) rotate(-15)"><use href="#tulip"/></g>
+                    <g transform="translate(190,20) scale(1.1) rotate(15)"><use href="#tulip"/></g>
+                    <g transform="translate(30,50) scale(1.2) rotate(-30)"><use href="#daisy"/></g>
+                    <g transform="translate(270,50) scale(1.2) rotate(30)"><use href="#daisy"/></g>
+                </g>
+                
+                <!-- Lớp hoa 2 -->
+                <g class="flowers-layer-2">
+                    <g transform="translate(150,60) scale(1.2) rotate(0)"><use href="#rose"/></g>
+                    <g transform="translate(70,60) scale(1.0) rotate(-25)"><use href="#tulip"/></g>
+                    <g transform="translate(230,60) scale(1.0) rotate(25)"><use href="#tulip"/></g>
+                    <g transform="translate(-10,80) scale(1.3) rotate(-35)"><use href="#rose"/></g>
+                    <g transform="translate(310,80) scale(1.3) rotate(35)"><use href="#rose"/></g>
+                    <g transform="translate(110,75) scale(1.1) rotate(-10)"><use href="#daisy"/></g>
+                    <g transform="translate(190,75) scale(1.1) rotate(10)"><use href="#daisy"/></g>
+                </g>
+
+                <!-- Lớp hoa 3 -->
+                <g class="flowers-layer-3">
+                    <g transform="translate(90,110) scale(1.1) rotate(-20)"><use href="#rose"/></g>
+                    <g transform="translate(210,110) scale(1.1) rotate(20)"><use href="#rose"/></g>
+                    <g transform="translate(150,115) scale(1.3) rotate(5)"><use href="#rose"/></g>
+                    <g transform="translate(35,110) scale(1.1) rotate(-35)"><use href="#tulip"/></g>
+                    <g transform="translate(265,110) scale(1.1) rotate(35)"><use href="#tulip"/></g>
+                    <g transform="translate(-20,130) scale(1.5) rotate(-20)"><use href="#bluestar"/></g>
+                    <g transform="translate(320,130) scale(1.5) rotate(20)"><use href="#bluestar"/></g>
+                </g>
+
+                <!-- Lớp hoa 4 -->
+                <g class="flowers-layer-4">
+                    <g transform="translate(110,155) scale(1.15) rotate(-10)"><use href="#rose"/></g>
+                    <g transform="translate(190,155) scale(1.15) rotate(10)"><use href="#rose"/></g>
+                    <g transform="translate(50,160) scale(1.1) rotate(-30)"><use href="#rose"/></g>
+                    <g transform="translate(250,160) scale(1.1) rotate(30)"><use href="#rose"/></g>
+                    <g transform="translate(150,170) scale(1.1) rotate(0)"><use href="#daisy"/></g>
+                    <g transform="translate(5,175) scale(1.2) rotate(-25)"><use href="#daisy"/></g>
+                    <g transform="translate(295,175) scale(1.2) rotate(25)"><use href="#daisy"/></g>
+                </g>
+
+                <!-- Lớp hoa 5 -->
+                <g class="flowers-layer-5">
+                    <g transform="translate(15,150) scale(1.6) rotate(-25)"><use href="#bluestar"/></g>
+                    <g transform="translate(285,150) scale(1.6) rotate(30)"><use href="#bluestar"/></g>
+                    <g transform="translate(150,210) scale(1.25) rotate(0)"><use href="#rose"/></g>
+                    <g transform="translate(85,200) scale(1.1) rotate(-20)"><use href="#tulip"/></g>
+                    <g transform="translate(215,200) scale(1.1) rotate(20)"><use href="#tulip"/></g>
+                    <g transform="translate(30,220) scale(1.1) rotate(-40)"><use href="#tulip"/></g>
+                    <g transform="translate(270,220) scale(1.1) rotate(40)"><use href="#tulip"/></g>
+                </g>
+
+                <!-- Lớp hoa 6 -->
+                <g class="flowers-layer-6">
+                    <g transform="translate(80,250) scale(1.15) rotate(-15)"><use href="#rose"/></g>
+                    <g transform="translate(220,250) scale(1.15) rotate(15)"><use href="#rose"/></g>
+                    <g transform="translate(135,255) scale(1.0) rotate(-5)"><use href="#daisy"/></g>
+                    <g transform="translate(165,255) scale(1.0) rotate(5)"><use href="#daisy"/></g>
+                </g>
+
+                <!-- Mặt trước giấy gói -->
+                <g class="wrapper-front">
+                    <path d="M110 440 L-10 210 Q150 260 310 210 L190 440 Z" fill="#e3d5ca"/>
+                    <path d="M110 440 L-10 210 Q100 280 150 320 Z" fill="#d5bdaf"/>
+                    <path d="M190 440 L310 210 Q200 280 150 320 Z" fill="#d5bdaf"/>
+                </g>
+
+                <!-- Nơ hoa -->
+                <g class="ribbon">
+                    <path d="M150 330 L105 395 L130 400 Z" fill="#d81b43"/>
+                    <path d="M150 330 L195 395 L170 400 Z" fill="#d81b43"/>
+                    <path d="M150 330 L75 300 L100 355 Z" fill="#ff7a94"/>
+                    <path d="M150 330 L225 300 L200 355 Z" fill="#ff7a94"/>
+                    <circle cx="150" cy="330" r="12" fill="#ff4d6d"/>
+                </g>
+
+                <!-- Định nghĩa mẫu hoa -->
+                <defs>
+                    <g id="leaf">
+                        <path d="M0,0 C15,-20 40,-20 50,0 C40,20 15,20 0,0 Z" fill="#2d8a4e" />
+                        <path d="M0,0 Q25,0 45,0" stroke="#1e5c34" stroke-width="1.5" fill="none"/>
+                    </g>
+
+                    <g id="rose">
+                        <path d="M0,-30 C25,-35 40,-15 35,5 C45,20 25,35 5,30 C-20,40 -40,20 -30,0 C-40,-20 -20,-35 0,-30 Z" fill="#b01030"/>
+                        <path d="M-5,-20 C15,-25 30,-5 25,10 C30,25 10,25 -5,15 C-25,20 -30,0 -20,-10 C-30,-20 -15,-25 -5,-20 Z" fill="#d81b43"/>
+                        <path d="M5,-12 C20,-15 20,5 10,15 C15,25 -5,20 -15,10 C-25,5 -15,-10 -5,-12 C-5,-20 5,-20 5,-12 Z" fill="#f04a69"/>
+                        <path d="M0,-5 C10,-10 15,0 5,10 C10,15 -5,15 -10,5 C-15,0 -5,-10 0,-5 Z" fill="#ff7a94"/>
+                        <path d="M-2,0 C2,-5 6,0 2,4 C-2,6 -5,2 -2,0 Z" fill="#ffb3c6"/>
+                    </g>
+
+                    <g id="tulip">
+                        <path d="M -12,-35 C -5,-45 5,-45 12,-35 C 10,-15 0,2 0,2 C 0,2 -10,-15 -12,-35 Z" fill="#880e4f"/> 
+                        <path d="M 0,2 C -25,-2 -25,-30 -14,-40 C -18,-20 -5,-5 0,2 Z" fill="#c2185b"/> 
+                        <path d="M 0,2 C 25,-2 25,-30 14,-40 C 18,-20 5,-5 0,2 Z" fill="#d81b60"/> 
+                        <path d="M -10,-32 C -15,-15 0,2 0,2 C 15,-15 10,-32 0,-38 C -5,-38 -10,-32 -10,-32 Z" fill="#f06292"/> 
+                        <path d="M -5,-28 C -8,-15 0,0 0,0 C 8,-15 5,-28 0,-32 C -2,-32 -5,-28 -5,-28 Z" fill="#f48fb1" opacity="0.9"/>
+                    </g>
+
+                    <g id="bluestar">
+                        <path d="M0,0 C3,-5 5,-12 0,-15 C-5,-12 -3,-5 0,0 Z" fill="#4dabf7"/>
+                        <path d="M0,0 C3,-5 5,-12 0,-15 C-5,-12 -3,-5 0,0 Z" fill="#4dabf7" transform="rotate(72)"/>
+                        <path d="M0,0 C3,-5 5,-12 0,-15 C-5,-12 -3,-5 0,0 Z" fill="#4dabf7" transform="rotate(144)"/>
+                        <path d="M0,0 C3,-5 5,-12 0,-15 C-5,-12 -3,-5 0,0 Z" fill="#4dabf7" transform="rotate(216)"/>
+                        <path d="M0,0 C3,-5 5,-12 0,-15 C-5,-12 -3,-5 0,0 Z" fill="#4dabf7" transform="rotate(288)"/>
+                        <circle cx="0" cy="0" r="3" fill="#fff3bf"/>
+                    </g>
+
+                    <g id="daisy">
+                        <path d="M0,-16 C-3,-5 3,-5 0,-16 M11,-11 C4,-4 8,0 11,-11 M16,0 C5,-3 5,3 16,0 M11,11 C4,4 0,8 11,11 M0,16 C-3,5 3,5 0,16 M-11,11 C-4,4 -8,0 -11,11 M-16,0 C-5,-3 -5,3 -16,0 M-11,-11 C-4,-4 0,-8 -11,-11" stroke="#ffffff" stroke-width="7" stroke-linecap="round"/>
+                        <circle cx="0" cy="0" r="5" fill="#ffb703"/>
+                    </g>
+                </defs>
+            </svg>
+        </div>
+
+        <div class="message">
+            <h1>Tặng bé nìaaaa 💖</h1>
+            <p>20/10 vui vẻ nhó, iuu emmm</p>
+        </div>
+    </div>
+</div>
+
+<script>
+    let isOpened = false;
+
+    function openLetter(element) {
+        if (isOpened) return;
+        isOpened = true;
+
+        element.classList.add('open');
+
+        setTimeout(() => {
+            const envelope = document.getElementById('envelopeSection');
+            envelope.classList.add('fade-out');
+
+            setTimeout(() => {
+                envelope.style.display = 'none';
+
+                const bouquet = document.getElementById('bouquetSection');
+                bouquet.style.display = 'flex';
+
+                setTimeout(() => bouquet.classList.add('show'), 50);
+
+                startAutoHearts();
+                startFallingPhotos();
+
+            }, 1000);
+
+        }, 2500); 
+    }
+
+    function handleClick(e) {
+        createHeart(e);
+        createFallingPhoto(e);
+    }
+
+    function createHeart(e) {
+        const heart = document.createElement('div');
+        
+        const fallingItems = ['❤️', '💖', '✨', 'Dễ thương', 'Xinh yêu', 'Cute', 'Đáng yêu', 'Thương thí', '🌸'];
+        const randomItem = fallingItems[Math.floor(Math.random() * fallingItems.length)];
+        
+        heart.textContent = randomItem;
+        heart.className = 'heart-fall';
+
+        const posX = e ? (e.clientX + (Math.random() * 40 - 20)) : (Math.random() * window.innerWidth);
+        const posY = e ? (e.clientY - 20) : -30;
+
+        heart.style.left = posX + 'px';
+        heart.style.top = posY + 'px';
+        
+        if (randomItem.length > 2) {
+            heart.style.fontSize = Math.random() * 6 + 18 + 'px'; 
+        } else {
+            heart.style.fontSize = Math.random() * 14 + 22 + 'px'; 
+        }
+
+        document.body.appendChild(heart);
+        setTimeout(() => heart.remove(), 4500);
+    }
+
+    const photoList = [
+        "anh1.jpg", 
+        "anh2.jpg", 
+        "anh3.jpg",
+        "anh4.jpg",
+        "anh5.jpg"
+    ];
+
+    function createFallingPhoto(e) {
+        if (!photoList.length) return;
+        const photo = document.createElement('img');
+        photo.className = 'falling-photo';
+        photo.alt = 'Ảnh kỷ niệm';
+        photo.src = photoList[Math.floor(Math.random() * photoList.length)];
+
+        photo.onerror = () => photo.remove();
+
+        let startX, startY;
+        if (e && e.clientX !== undefined) {
+            startX = Math.min(Math.max(10, e.clientX - 50), window.innerWidth - 110);
+            startY = e.clientY - 30;
+        } else {
+            startX = Math.random() * Math.max(0, window.innerWidth - 140);
+            startY = -120;
+        }
+
+        const duration = 6 + Math.random() * 4;
+        photo.style.left = startX + 'px';
+        photo.style.top = startY + 'px';
+        
+        photo.style.setProperty('--duration', duration + 's');
+        photo.style.setProperty('--drift', (Math.random() * 160 - 80) + 'px');
+        photo.style.setProperty('--drift-end', (Math.random() * 220 - 110) + 'px');
+        photo.style.setProperty('--rotate-start', (Math.random() * 24 - 12) + 'deg');
+        photo.style.setProperty('--rotate-mid', (Math.random() * 30 - 15) + 'deg');
+        photo.style.setProperty('--rotate-end', (Math.random() * 36 - 18) + 'deg');
+
+        document.body.appendChild(photo);
+        setTimeout(() => photo.remove(), duration * 1000 + 200);
+    }
+
+    function startFallingPhotos() {
+        if (window.photoTimer) return;
+        window.photoTimer = setInterval(() => createFallingPhoto(null), 2000);
+    }
+
+    function startAutoHearts() {
+        if (window.heartTimer) return;
+        window.heartTimer = setInterval(() => createHeart(null), 700); 
+    }
+</script>
+</body>
+</html>
